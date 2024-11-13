@@ -36,10 +36,11 @@ export function ai_components_AnomalyDetection(ID: string) {
   let anomaly_probab_helper: CbServer.ClearBladeAIModel | undefined;
 
   async function initializeArtifacts(data: BQDataSchema) {
-    const shouldInit = await helper.shouldInitializeArtifacts(ID, data);
-
-    if (!shouldInit) {
-      return;
+    if (imputer && scaler && model && anomaly_probab_helper) {
+      const shouldReinit = await helper.shouldReInitializeArtifacts(ID, data);
+      if (!shouldReinit) {
+        return;
+      }
     }
 
     try {

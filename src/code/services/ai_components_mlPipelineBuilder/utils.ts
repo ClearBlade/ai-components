@@ -29,6 +29,7 @@ export interface PipelineData {
 }
 
 export enum RunFrequency {
+  HOURLY = "Hourly",
   NEVER = "Never",
   WEEKLY = "Weekly",
   TWICE_A_MONTH = "Twice a Month",
@@ -107,6 +108,10 @@ export const shouldRunPipeline = (pipeline: PipelineData): boolean => {
   const currentDate = new Date();
   const lastRun = new Date(pipeline.last_pipeline_run);
   switch (pipeline.run_frequency) {
+    case RunFrequency.HOURLY: {
+      const nextRun = new Date(lastRun.setHours(lastRun.getHours() + 1));
+      return nextRun < currentDate;
+    }
     case RunFrequency.WEEKLY: {
       const nextRun = new Date(lastRun.setDate(lastRun.getDate() + 7));
       return nextRun < currentDate;
