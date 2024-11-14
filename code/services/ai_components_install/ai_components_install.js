@@ -41,7 +41,6 @@ function ai_components_install(req, resp) {
     run_frequency,
     feature_attributes,
     data_threshold,
-    init_artifacts: false,
   }).then(function(){
     return client.publish('_ai/_components/_install', JSON.stringify({
       id: params.prefix + "_" + params.component_id,

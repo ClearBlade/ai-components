@@ -34,13 +34,17 @@ export function ai_components_AnomalyDetection(ID: string) {
   let scaler: CbServer.ClearBladeAIModel | undefined;
   let model: CbServer.ClearBladeAIModel | undefined;
   let anomaly_probab_helper: CbServer.ClearBladeAIModel | undefined;
+  let lastInitTime: Date | undefined;
 
   async function initializeArtifacts(data: BQDataSchema) {
-    if (imputer && scaler && model && anomaly_probab_helper) {
-      const shouldReinit = await helper.shouldReInitializeArtifacts(ID, data);
-      if (!shouldReinit) {
-        return;
-      }
+    const { init, last_run } = await helper.shouldInitializeArtifacts(
+      ID,
+      data,
+      lastInitTime
+    );
+
+    if (!init) {
+      return;
     }
 
     try {
@@ -69,6 +73,7 @@ export function ai_components_AnomalyDetection(ID: string) {
       model = new ClearBladeAI.Model(model_options);
       scaler = new ClearBladeAI.Model(scaler_options);
       imputer = new ClearBladeAI.Model(imputer_options);
+      lastInitTime = last_run;
     } catch (err) {
       return;
     }

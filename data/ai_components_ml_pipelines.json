@@ -37,11 +37,6 @@
             "PK": false
         },
         {
-            "ColumnName": "init_artifacts",
-            "ColumnType": "bool",
-            "PK": false
-        },
-        {
             "ColumnName": "pipeline_run_id",
             "ColumnType": "jsonb",
             "PK": false

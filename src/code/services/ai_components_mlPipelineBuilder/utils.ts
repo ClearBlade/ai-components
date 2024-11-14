@@ -20,7 +20,6 @@ export interface PipelineData {
   feature_attributes: string[];
   data_threshold?: number;
   run_frequency?: RunFrequency;
-  init_artifacts: boolean;
   pipeline_run_id?: {
     current_run: string;
     last_run: string;

@@ -26,6 +26,7 @@ async function ai_components_mlPipelineBuilder(
   _: CbServer.BasicReq,
   resp: CbServer.Resp
 ) {
+  console.log("Building pipelines...");
   const pipelines = await getPipelines();
   const rows = [];
   for (const row of pipelines) {
@@ -95,7 +96,6 @@ async function ai_components_mlPipelineBuilder(
         row.pipeline_run_id.current_run =
           results.message.split("/pipelineJobs/")[1];
         row.last_pipeline_run = new Date().toString();
-        row.init_artifacts = true;
       }
       row.data_threshold = row.data_threshold || 100000;
       console.log(results.message);
@@ -104,6 +104,12 @@ async function ai_components_mlPipelineBuilder(
       console.error("Error building pipeline: ", error);
     }
   }
+
+  console.log(
+    rows.length,
+    "pipelines started: ",
+    rows.map((r) => `${r.component_id}::${r.asset_type_id}`).join(", ")
+  );
   //then we need to update the rows back in the ml_pipelines collection
   try {
     if (rows.length > 0) await updatePipelineRows(rows);
