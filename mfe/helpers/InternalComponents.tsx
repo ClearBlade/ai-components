@@ -135,8 +135,8 @@ export default function InternalComponents(
                   <Field
                     size="small"
                     value={values.settings.data_threshold}
-                    name="componentsMeta.data_threshold"
-                    id="componentsMeta.data_threshold"
+                    name="settings.data_threshold"
+                    id="settings.data_threshold"
                     component={TextField}
                     variant="outlined"
                     onChange={handleChange}
@@ -170,11 +170,11 @@ export default function InternalComponents(
                     fullWidth
                     size="small"
                     value={values.settings.run_frequency}
-                    name="componentsMeta.run_frequency"
-                    id="componentsMeta.run_frequency"
+                    name="settings.run_frequency"
+                    id="settings.run_frequency"
                     component={TextField}
                     onChange={(e) => {
-                      e.target.name = "componentsMeta.run_frequency";
+                      e.target.name = "settings.run_frequency";
                       handleChange(e);
                     }}
                     variant="outlined"
