@@ -5,13 +5,13 @@ export type AiComponentsProps = {
   component: {
     id: string;
     name: string;
-    meta: Record<string, unknown>;
+    settings: Record<string, unknown>;
   }
   assetTypeName: string;
   setValues: React.Dispatch<
     React.SetStateAction<{
       schema: Record<string, unknown>[];
-      componentsMeta?: Record<string, unknown>;
+      settings?: Record<string, unknown>;
     }>
   >
 };

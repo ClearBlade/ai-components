@@ -50,9 +50,9 @@ export default function InternalComponents(
     <Formik
       initialValues={{
         schema: schema.filter((attribute) => attribute.selected),
-        componentsMeta: {
-          data_threshold: component.meta["data_threshold"] ?? 100000,
-          run_frequency: component.meta["run_frequency"] ?? "Never",
+        settings: {
+          data_threshold: component.settings["data_threshold"] ?? 100000,
+          run_frequency: component.settings["run_frequency"] ?? "Never",
         },
       }}
       onSubmit={() => {}}
@@ -134,7 +134,7 @@ export default function InternalComponents(
                   </div>
                   <Field
                     size="small"
-                    value={values.componentsMeta.data_threshold}
+                    value={values.settings.data_threshold}
                     name="componentsMeta.data_threshold"
                     id="componentsMeta.data_threshold"
                     component={TextField}
@@ -169,7 +169,7 @@ export default function InternalComponents(
                     select
                     fullWidth
                     size="small"
-                    value={values.componentsMeta.run_frequency}
+                    value={values.settings.run_frequency}
                     name="componentsMeta.run_frequency"
                     id="componentsMeta.run_frequency"
                     component={TextField}
