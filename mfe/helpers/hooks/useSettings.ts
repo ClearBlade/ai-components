@@ -2,7 +2,7 @@ import { useQuery } from "react-query";
 
 const fetchSettings = async (id: string): Promise<Record<string, unknown>> => {
   const ids = id.split('_');
-  const url = `https://raw.githubusercontent.com/ClearBlade/ia-microfrontends/main/src/${ids[0]}/${ids[1]}/settings.json`;
+  const url = `https://raw.githubusercontent.com/ClearBlade/ai-components/main/mfe/ai_components_${ids[0]}/settings.json`;
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error('Failed to fetch settings');
