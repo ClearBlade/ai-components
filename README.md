@@ -1,5 +1,10 @@
 # ia-components
-This repository consists of all the available AI components handler libraries
+This repository consists of all the available ClearBlade AI components handler libraries
+
+## Manual Setup 
+
+- Before you configure this component in your IA system, you'll need to setup a secret in your IA account. This secret is a GCP service account and should be named `gcp-bigquery-service-account`.   
+
 
 ## How to create a new AI component handler library
 
@@ -10,6 +15,6 @@ This repository consists of all the available AI components handler libraries
 
 ## How to build component handler library
 
-- Run `npm run build:component -library=<YOUR-COMPONENT-NAME>`
+- Run `npm run build:library -library=<YOUR-COMPONENT-NAME>`
 - This command will transpile and build your library code.
 - Finally, push all your files.
