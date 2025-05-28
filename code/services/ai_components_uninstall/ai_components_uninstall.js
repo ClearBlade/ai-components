@@ -13,27 +13,27 @@
  */
 
 function ai_components_uninstall(req, resp) {
-
+  
+  const params = req.params;
+  const entity_id = params.entity_id; 
   const CACHE_KEY = 'google-bigquery-config'
   const PROJECT_ID = 'clearblade-ipm'
   const DATASET_ID = 'clearblade_components'
 
-  const params = req.params;
-  const col = ClearBladeAsync.Collection('ai_components_ml_pipelines');
-  const query = ClearBladeAsync.Query().equalTo('component_id', params.component_id).equalTo('asset_type_id', params.entity_id);
-  
-  col.remove(query).then(function() {
-    return getAccessToken();
-  }).then(function(token) {
-    if (!token) {
-      resp.success('No access token found, so not deleting BQ data');
-    }
-    return removeBQData(token.accessToken, params.entity_id);
-  }).then(resp.success).catch(resp.error);
+  function removeMLPipeline() {
+    const col = ClearBladeAsync.Collection('ai_components_ml_pipelines');
+    const query = ClearBladeAsync.Query().equalTo('component_id', params.component_id).equalTo('asset_type_id', entity_id);
+    return col.remove(query)
+  }
 
   function getAccessToken() {
     const cache = ClearBladeAsync.Cache('AccessTokenCache');
-    return cache.get(CACHE_KEY);
+    return cache.get(CACHE_KEY).then(function(token){
+      return token || {accessToken: ""};
+    }).catch(function(error){
+      console.log('Error getting access token: ', error);
+      return {accessToken: ""};
+    });
   }
 
   function removeBQData(token, id) {
@@ -63,4 +63,217 @@ function ai_components_uninstall(req, resp) {
       return Promise.reject(error);
     });
   }
+
+  function getEntities() {
+    const col = ClearBladeAsync.Collection('ai_components_entities');
+    const query = ClearBladeAsync.Query();
+    return col.fetch(query).then(function(data) {
+      return {
+        count: data.TOTAL,
+        entities: data.DATA.filter(function(entity) {
+          return entity.id === entity_id;
+        })[0].entities,
+      }
+    });
+  }
+
+  function getAssetTypeInfo() {
+    return fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/fetchTableItems?id=assetTypes.read', {
+      method: 'POST',
+      headers: {
+        'ClearBlade-UserToken': req.userToken,
+      },
+      body: JSON.stringify({
+        name: 'assetTypes.read',
+        body: {
+          "query": {
+            "Queries": [
+              [
+                {
+                    "Operator": "=",
+                    "Field": "id",
+                    "Value": entity_id
+                }
+              ]
+            ],
+            "Order": [],
+            "PageSize": 100,
+            "PageNumber": 1,
+            "Columns": [],
+            "Distinct": "",
+            "GroupBy": [],
+            "RawQuery": "",
+            "PrimaryKey": []
+        }
+        },
+      }),
+    }).then(function(response) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch asset type info: ' + response.statusText);
+      }
+      return response.json();
+    }).then(function(data) {
+      if (data.results.COUNT === 0) {
+        throw new Error('Asset type not found');
+      }
+      return data.results.DATA[0];
+    });
+  }
+
+  function getGroupsForAssetType() {
+    return fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/fetchTableItems?id=groupsForAssetType.read', {
+      method: 'POST',
+      headers: {
+        'ClearBlade-UserToken': req.userToken,
+      },
+      body: JSON.stringify({
+        name: 'groupsForAssetType.read',
+        body: {
+          id: entity_id,
+        },
+      }),
+    })
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error('Failed to fetch groups for asset type: ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        if (data.results.COUNT === 0) {
+          throw new Error('No groups found for asset type');
+        }
+        return data.results.DATA.map(function(group) {
+          return group.id;
+        });
+      });
+  }
+
+  function removeEntities(entityInfo, assetTypeInfo, groupIds) {
+    const entities = entityInfo.entities;
+    const totalCount = entityInfo.count;
+    
+    // Remove anomaly detection attributes from asset type schema
+    const schema = JSON.parse(assetTypeInfo.schema);
+    const newSchema = schema.filter(function(attr) {
+      return attr.attribute_name !== 'anomaly_score' && 
+      attr.attribute_name !== 'anomaly_breakdown'
+    });
+    assetTypeInfo.schema = JSON.stringify(newSchema);
+    // Update asset type with removed attributes
+    const updateAssetType = fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/updateTableItems?id=assetTypes.update', {
+      method: 'POST',
+      headers: {
+        'ClearBlade-UserToken': req.userToken,
+      },
+      body: JSON.stringify({
+        name: 'assetTypes.update',
+        body: {
+          item: assetTypeInfo,
+          groupIds,
+        },
+      }),
+    }).then(function(response) {
+      if (!response.ok) {
+        throw new Error('Failed to update asset type: ' + response.statusText);
+      }
+      return response.json();
+    });
+
+    console.log('totalCount: ', totalCount);
+    // Remove event type
+    var removeEventType;
+    if (totalCount === 1) {
+      removeEventType = fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/deleteTableItems?id=eventTypes.delete', {
+        method: 'POST',
+        headers: {
+          'ClearBlade-UserToken': req.userToken,
+        },
+        body: JSON.stringify({
+          name: 'eventTypes.delete',
+          body: {
+            id: 'Anomaly Detected'
+          },
+        }),
+      }).then(function(response) {
+        if (!response.ok && response.status !== 404) {
+          throw new Error('Failed to delete event type: ' + response.statusText);
+        }
+        return response.json();
+      });
+    } else {
+      removeEventType = Promise.resolve();
+    }
+
+    // Remove rule type
+    const removeRuleType = fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/deleteTableItems?id=ruleTypes.delete', {
+      method: 'POST',
+      headers: {
+        'ClearBlade-UserToken': req.userToken,
+      },
+      body: JSON.stringify({
+        name: 'ruleTypes.delete',
+        body: {
+          id: entities.rule_types[0].id
+        },
+      }),
+    }).then(function(response) {
+      if (!response.ok && response.status !== 404) {
+        throw new Error('Failed to delete rule type: ' + response.statusText);
+      }
+      return response.json();
+    });
+
+    // Remove rule
+    const removeRule = fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/deleteTableItems?id=rules.delete', {
+      method: 'POST',
+      headers: {
+        'ClearBlade-UserToken': req.userToken,
+      },
+      body: JSON.stringify({
+        name: 'rules.delete',
+        body: {
+          id: entities.rules[0].id
+        },
+      }),
+    }).then(function(response) {
+      if (!response.ok && response.status !== 404) {
+        throw new Error('Failed to delete rule: ' + response.statusText);
+      }
+      return response.json();
+    });
+
+    // Remove from ai_components_entities collection
+    const col = ClearBladeAsync.Collection('ai_components_entities');
+    const query = ClearBladeAsync.Query().equalTo('id', entity_id);
+    const removeFromCollection = col.remove(query);
+
+    return Promise.all([
+      updateAssetType,
+      removeEventType,
+      removeRuleType,
+      removeRule,
+      removeFromCollection
+    ]);
+  }
+
+  Promise.all([
+    removeMLPipeline(),
+    getAccessToken(),
+  ]).then(function(results) {
+    const token = results[1];
+    if (!token || !token.accessToken) {
+      console.log('No access token found, so not deleting BQ data');
+      return;
+    }
+    return removeBQData(token.accessToken, entity_id);
+  }).then(function(){
+    return Promise.all([getEntities(), getAssetTypeInfo(), getGroupsForAssetType()]);
+  }).then(function(results){
+    const entityInfo = results[0];
+    const assetTypeInfo = results[1];
+    const groupIds = results[2];
+    return removeEntities(entityInfo, assetTypeInfo, groupIds);
+  }).then(resp.success).catch(resp.error);
+
 }

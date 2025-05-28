@@ -1,0 +1,127 @@
+{
+  "attributes": [
+    {
+      "attribute_name": "anomaly_score",
+      "attribute_type": "number",
+      "attribute_label": "Anomaly Score"
+    },
+    {
+      "attribute_name": "anomaly_breakdown",
+      "attribute_type": "text",
+      "attribute_label": "Anomaly Breakdown"
+    }
+  ],
+  "eventTypes": [
+    {
+      "action_types": [
+        "send_sms",
+        "send_email",
+        "send_teams_message"
+      ],
+      "closed_states": [],
+      "description": "Event type for anomaly detection.",
+      "has_lifecycle": false,
+      "id": "Anomaly Detected",
+      "label": "Anomaly Detected",
+      "open_states": [],
+      "priority": 2,
+      "severity": 3
+    }
+  ],
+  "ruleTypes": [
+    {
+      "label": "{asset_type_label} Anomaly Detection",
+      "event_type_ids": [
+        "Anomaly Detected"
+      ],
+      "include_timeframe": false,
+      "is_invalid": false,
+      "is_external": false,
+      "conditions": {
+        "and": [
+          {
+            "type": "state",
+            "meta": [
+              {
+                "entity": {
+                  "suffix": "",
+                  "filter_type": [
+                    {
+                      "type": "types",
+                      "label": "Asset Types",
+                      "id": "asset_types"
+                    }
+                  ],
+                  "prefix": "When",
+                  "selected_entity": {
+                    "value": "{asset_type_id}",
+                    "ancestorId": "{asset_type_id}"
+                  },
+                  "allow_types": true,
+                  "allow_specific": true
+                }
+              },
+              {
+                "relationship": {
+                  "attribute_type": "number",
+                  "suffix": "",
+                  "equal": "",
+                  "greaterThanInclusive": "is greater than",
+                  "attribute": "anomaly_score",
+                  "attribute_label": "Anomaly Score"
+                }
+              },
+              {
+                "duration": {
+                  "include_duration": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "action_ids": [],
+      "closed_by_rule": {},
+      "closes_ids": [],
+      "conditions": {
+        "and": [
+          {
+            "entity": {
+              "id": "{asset_type_id}",
+              "entity_type": "asset_types"
+            },
+            "relationship": {
+              "operator": "greaterThanInclusive",
+              "attribute": "anomaly_score",
+              "attribute_type": "state",
+              "duration": {
+                "value": 0,
+                "unit": "seconds"
+              },
+              "value": 65
+            }
+          }
+        ]
+      },
+      "custom_id": "",
+      "event_type_id": "Anomaly Detected",
+      "id": "",
+      "is_disabled": false,
+      "is_invalid": false,
+      "label": "Anomaly Detected on {asset_type_label}",
+      "priority": 2,
+      "rule_type_id": "",
+      "severity": 3,
+      "timeframe": {
+        "type": "",
+        "startTime": "00:00",
+        "endTime": "00:00",
+        "days": []
+      }
+    }
+  ]
+}
