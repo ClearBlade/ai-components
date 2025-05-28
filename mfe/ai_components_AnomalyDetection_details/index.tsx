@@ -5,17 +5,14 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 import singleSpaReact from "single-spa-react";
-import AnomalyDetection from "./AnomalyDetection";
-import { SnackbarProvider } from "../context/SnackbarContext";
+import AnomalyDetectionDetails from "./AnomalyDetectionDetails";
 
-function AnomalyDetectionRoot(props) {
+function AnomalyDetectionDetailsRoot(props) {
   return (
     <AppProviders>
       <BrowserRouter basename={getBasePath()}>
         <Subscribe>
-          <SnackbarProvider>
-            <AnomalyDetection {...props} />
-          </SnackbarProvider>
+          <AnomalyDetectionDetails {...props} />
         </Subscribe>
       </BrowserRouter>
     </AppProviders>
@@ -25,7 +22,7 @@ function AnomalyDetectionRoot(props) {
 const lifecycles = singleSpaReact({
   React,
   ReactDOM,
-  rootComponent: AnomalyDetectionRoot,
+  rootComponent: AnomalyDetectionDetailsRoot,
   errorBoundary(err, info, props) {
     // Customize the root error boundary for your microfrontend here.
     return null;

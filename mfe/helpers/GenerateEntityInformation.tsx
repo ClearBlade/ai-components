@@ -7,17 +7,21 @@ function GenerateEntityInformation({
   componentLabel,
   assetTypeLabel,
   settings,
+  isEditing,
 }: {
   componentLabel: string;
   assetTypeLabel: string;
   settings: Record<string, any>;
+  isEditing?: boolean;
 }) {
   return (
     <Grid container>
       <Grid item xs={12}>
         <Alert variant="outlined" severity="info">
           <Typography variant="body2">
-            {`Adding the ${componentLabel} component to ${assetTypeLabel} asset type will create the following: `}
+            {!isEditing
+              ? `Adding ${componentLabel} to "${assetTypeLabel}" asset type creates the following: `
+              : `${componentLabel} for "${assetTypeLabel}" asset type includes the following: `}
           </Typography>
           <ul style={{ marginTop: 0, paddingLeft: "20px" }}>
             {settings?.attributes?.length > 0 && (
