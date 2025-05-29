@@ -61,7 +61,7 @@ export const assetsTypesFetcherFn = async (assetTypeId?: string) => {
 
 export function useFetchAssetTypes(assetTypeId?: string) {
   const fetchResult = useQuery(['assetTypes', assetTypeId], () => assetsTypesFetcherFn(assetTypeId), {
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     keepPreviousData: true,
     retry: false,

@@ -46,6 +46,12 @@
                 "Items": null,
                 "Level": 15,
                 "Name": "ai_components_ml_pipelines"
+            },
+            {
+                "Columns": null,
+                "Items": null,
+                "Level": 15,
+                "Name": "ai_components_entities"
             }
         ],
         "Deployments": {
