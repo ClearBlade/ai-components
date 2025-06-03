@@ -48,6 +48,8 @@ export default function AnomalyDetectionDetails({
     return <Typography>Loading...</Typography>;
   }
 
+  console.log("ce: ", componentEntities);
+
   if (!componentEntities) {
     return null;
   }

@@ -65,16 +65,41 @@ function ai_components_uninstall(req, resp) {
   }
 
   function getEntities() {
-    const col = ClearBladeAsync.Collection('ai_components_entities');
-    const query = ClearBladeAsync.Query();
-    return col.fetch(query).then(function(data) {
-      return {
-        count: data.TOTAL,
-        entities: data.DATA.filter(function(entity) {
-          return entity.id === entity_id;
-        })[0].entities,
+    return fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/fetchTableItems?id=components.read', {
+      method: 'POST',
+      headers: {
+        'ClearBlade-UserToken': req.userToken,
+      },
+      body: JSON.stringify({
+        name: 'components.read',
+        body: {
+          query: {
+            filters: {
+              id: params.component_id,
+            },
+          },
+        },
+      }),
+    }).then(function(response) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch component: ' + response.statusText);
       }
-    });
+      return response.json();
+    }).then(function(data) {
+
+      const entityComponent = data.results.DATA.filter(function(item) {
+        return item.entity_id === entity_id;
+      });
+
+      if (entityComponent.length === 0) {
+        throw new Error('Component not found for entity: ' + entity_id);
+      }
+
+      return {
+        count: data.results.COUNT,
+        entities: entityComponent[0].settings.entities,
+      }
+    })
   }
 
   function getAssetTypeInfo() {
@@ -243,17 +268,11 @@ function ai_components_uninstall(req, resp) {
       return response.json();
     });
 
-    // Remove from ai_components_entities collection
-    const col = ClearBladeAsync.Collection('ai_components_entities');
-    const query = ClearBladeAsync.Query().equalTo('id', entity_id);
-    const removeFromCollection = col.remove(query);
-
     return Promise.all([
       updateAssetType,
       removeEventType,
       removeRuleType,
       removeRule,
-      removeFromCollection
     ]);
   }
 

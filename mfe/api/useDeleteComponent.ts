@@ -6,6 +6,9 @@ const deleteComponentFn = async (componentId: string, assetTypeId: string) => {
   const { url } = getPlatformInfo();
   const { systemKey, userToken } = getAuthInfo();
 
+  console.log("componentId: ", componentId);
+  console.log("assetTypeId: ", assetTypeId);
+
   const deleteComponentResponse = await fetch(`${url}/api/v/1/code/${systemKey}/deleteTableItems?id=components.delete`, {
     method: 'POST',
     headers: {

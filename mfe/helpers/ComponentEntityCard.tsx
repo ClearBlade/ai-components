@@ -135,6 +135,9 @@ const ComponentEntityCard = ({
     return <CircularProgress />;
   }
 
+  console.log("componentSettings: ", componentSettings);
+  console.log("assetTypeData: ", assetTypeData);
+
   if (
     !componentSettings ||
     !assetTypeData ||

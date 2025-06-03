@@ -361,10 +361,23 @@ function ai_components_install(req, resp) {
   }
 
   function addEntityIdsToCollection(entities) {
-    const col = ClearBladeAsync.Collection('ai_components_entities');
-    return col.create({
-      id: entity_id,
-      entities,
+    return fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/updateTableItems?id=components.update', {
+      method: 'POST',
+      headers: {
+        'ClearBlade-UserToken': req.userToken,
+      },
+      body: JSON.stringify({
+        name: 'components.update',
+        body: {
+          item: {
+            id: component_id,
+            entity_id: entity_id,
+            settings: {
+              entities,
+            },
+          }
+        },
+      }),
     })
   }
 
