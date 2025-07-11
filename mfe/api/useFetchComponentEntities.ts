@@ -37,8 +37,8 @@ export const componentEntitiesFetcherFn = async () => {
 
 export function useFetchComponentEntities() {
   const fetchResult = useQuery(['componentEntities'], componentEntitiesFetcherFn, {
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     keepPreviousData: true,
     retry: false,
   });

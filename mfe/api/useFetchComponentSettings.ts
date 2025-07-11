@@ -20,7 +20,7 @@ export const componentSettingsFetcherFn = async (assetTypeId: string) => {
     throw new Error(`Failed to fetch component settings: ${fetchComponentSettingsResponse.statusText}`);
   }
 
-  const data = (await fetchComponentSettingsResponse.json()) as { DATA: {asset_type_id: string; feature_attributes: string[]; data_threshold: number, run_frequency: string}[] };
+  const data = (await fetchComponentSettingsResponse.json()) as { DATA: {asset_type_id: string; feature_attributes: string[]; data_threshold: number, run_frequency: string, entities: Record<string, any>}[] };
   return data.DATA || [];
 }
 

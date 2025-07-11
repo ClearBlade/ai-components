@@ -19,9 +19,10 @@ function ai_components_uninstall(req, resp) {
   const CACHE_KEY = 'google-bigquery-config'
   const PROJECT_ID = 'clearblade-ipm'
   const DATASET_ID = 'clearblade_components'
+  const col = ClearBladeAsync.Collection('ai_components_ml_pipelines');
+
 
   function removeMLPipeline() {
-    const col = ClearBladeAsync.Collection('ai_components_ml_pipelines');
     const query = ClearBladeAsync.Query().equalTo('component_id', params.component_id).equalTo('asset_type_id', entity_id);
     return col.remove(query)
   }
@@ -65,39 +66,24 @@ function ai_components_uninstall(req, resp) {
   }
 
   function getEntities() {
-    return fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/fetchTableItems?id=components.read', {
-      method: 'POST',
-      headers: {
-        'ClearBlade-UserToken': req.userToken,
-      },
-      body: JSON.stringify({
-        name: 'components.read',
-        body: {
-          query: {
-            filters: {
-              id: params.component_id,
-            },
-          },
-        },
-      }),
-    }).then(function(response) {
-      if (!response.ok) {
-        throw new Error('Failed to fetch component: ' + response.statusText);
-      }
-      return response.json();
-    }).then(function(data) {
-
-      const entityComponent = data.results.DATA.filter(function(item) {
-        return item.entity_id === entity_id;
-      });
+    const query = ClearBladeAsync.Query().equalTo('component_id', params.component_id);
+    return col.fetch(query).then(function(data){
+      const entityComponent = data.DATA.filter(function(item){
+        return item.asset_type_id === entity_id;
+      })
 
       if (entityComponent.length === 0) {
         throw new Error('Component not found for entity: ' + entity_id);
       }
 
+      console.log({
+        count: data.TOTAL,
+        entities: entityComponent[0].entities
+      })
+
       return {
-        count: data.results.COUNT,
-        entities: entityComponent[0].settings.entities,
+        count: data.TOTAL,
+        entities: entityComponent[0].entities
       }
     })
   }
@@ -276,11 +262,8 @@ function ai_components_uninstall(req, resp) {
     ]);
   }
 
-  Promise.all([
-    removeMLPipeline(),
-    getAccessToken(),
-  ]).then(function(results) {
-    const token = results[1];
+  getAccessToken()
+  .then(function(token) {
     if (!token || !token.accessToken) {
       console.log('No access token found, so not deleting BQ data');
       return;
@@ -292,7 +275,7 @@ function ai_components_uninstall(req, resp) {
     const entityInfo = results[0];
     const assetTypeInfo = results[1];
     const groupIds = results[2];
-    return removeEntities(entityInfo, assetTypeInfo, groupIds);
+    return Promise.all([removeMLPipeline(), removeEntities(entityInfo, assetTypeInfo, groupIds)]);
   }).then(resp.success).catch(resp.error);
 
 }

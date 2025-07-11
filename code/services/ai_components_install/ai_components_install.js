@@ -301,6 +301,7 @@ function ai_components_install(req, resp) {
       "action_ids": [],
       "closed_by_rule": {},
       "closes_ids": [],
+      "allow_multiple_open_events": false,
       "conditions": {
         "and": [
           {
@@ -361,23 +362,11 @@ function ai_components_install(req, resp) {
   }
 
   function addEntityIdsToCollection(entities) {
-    return fetch('https://' + cbmeta.platform_url + '/api/v/1/code/' + cbmeta.system_key + '/updateTableItems?id=components.update', {
-      method: 'POST',
-      headers: {
-        'ClearBlade-UserToken': req.userToken,
-      },
-      body: JSON.stringify({
-        name: 'components.update',
-        body: {
-          item: {
-            id: component_id,
-            entity_id: entity_id,
-            settings: {
-              entities,
-            },
-          }
-        },
-      }),
+    const col = ClearBladeAsync.Collection('ai_components_ml_pipelines');
+    const query = ClearBladeAsync.Query().equalTo('asset_type_id', entity_id);
+    
+    return col.update(query, {
+      entities: entities,
     })
   }
 

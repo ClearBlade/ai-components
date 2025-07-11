@@ -135,9 +135,6 @@ const ComponentEntityCard = ({
     return <CircularProgress />;
   }
 
-  console.log("componentSettings: ", componentSettings);
-  console.log("assetTypeData: ", assetTypeData);
-
   if (
     !componentSettings ||
     !assetTypeData ||
@@ -181,6 +178,11 @@ const ComponentEntityCard = ({
     //       (a) => a === attribute.attribute_name
     //     )
     // )
+  };
+
+  const getEntities = () => {
+    return componentSettings.filter((c) => c.asset_type_id === entity.id)[0]
+      .entities;
   };
 
   return (
@@ -286,8 +288,8 @@ const ComponentEntityCard = ({
                   //   maxWidth: 200,
                   // }}
                 >
-                  {entity.entities?.attributes
-                    ?.map((f) => f.attribute_label)
+                  {getEntities()
+                    ?.attributes?.map((f) => f.attribute_label)
                     .join(", ")}
                 </Typography>
               </Grid>
@@ -300,7 +302,7 @@ const ComponentEntityCard = ({
                 >
                   Rule
                 </Typography>
-                {entity.entities?.rules?.map((r, i) => (
+                {getEntities()?.rules?.map((r, i) => (
                   <a
                     key={i}
                     href={`${platformInfo.url}/ia/${
@@ -323,7 +325,7 @@ const ComponentEntityCard = ({
                 >
                   Rule Type
                 </Typography>
-                {entity.entities?.rule_types?.map((r, i) => (
+                {getEntities()?.rule_types?.map((r, i) => (
                   <a
                     key={i}
                     href={`${platformInfo.url}/ia/${
@@ -346,7 +348,7 @@ const ComponentEntityCard = ({
                 >
                   Event Type
                 </Typography>
-                {entity.entities?.event_types?.map((e, i) => (
+                {getEntities()?.event_types?.map((e, i) => (
                   <a
                     key={i}
                     href={`${platformInfo.url}/ia/${
