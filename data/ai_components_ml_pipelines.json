@@ -45,6 +45,11 @@
             "ColumnName": "last_pipeline_run",
             "ColumnType": "timestamp",
             "PK": false
+        },
+        {
+            "ColumnName": "entities",
+            "ColumnType": "jsonb",
+            "PK": false 
         }
     ]
 }
